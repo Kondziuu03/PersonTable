@@ -1,0 +1,106 @@
+﻿@model PersonTable.Models.PersonModel
+
+@{
+    ViewData["Title"] = Model.Id.HasValue ? "Edit" : "Add";
+    Layout = "_Layout";
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        Please fix the errors below.
+    </div>
+}
+
+<div class="container mt-4">
+    <h2>@(Model.Id.HasValue ? "Edit" : "Add")</h2>
+
+    @using (Html.BeginForm(Model.Id.HasValue ? "Edit" : "Create", "Persons", FormMethod.Post, new { @class = "mt-3" }))
+    {
+        @Html.HiddenFor(m => m.Id)
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.FirstName, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.FirstName, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.FirstName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.LastName, new { @class = "form-label" })
+            @Html.TextBoxFor(m => m.LastName, new { @class = "form-control" })
+            @Html.ValidationMessageFor(m => m.LastName, "", new { @class = "text-danger" })
+        </div>
+
+        <div class="mb-3">
+            @Html.LabelFor(m => m.Description, new { @class = "form-label" })
+            @Html.TextAreaFor(m => m.Description, new { @class = "form-control" })
+        </div>
+
+        <div id="emailsContainer" class="mb-3">
+            <label class="form-label">Email(s):</label>
+            @for (int i = 0; i < Model.Emails.Count; i++)
+            {
+                <div class="mb-3 email-entry">
+                    <div class="input-group">
+                        @Html.TextBoxFor(m => m.Emails[i].Address, new { @class = "form-control" })
+                        <button type="button" class="btn btn-danger removeEmail">Remove</button>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Emails[i].Address, "", new { @class = "text-danger d-block" })
+                </div>
+            }
+
+            @if (Model.Emails.Count == 0)
+            {
+                <div class="mb-3 email-entry">
+                    <div class="input-group">
+                        <input type="text" name="Emails[0].Address" class="form-control" />
+                        <button type="button" class="btn btn-danger removeEmail">Remove</button>
+                    </div>
+                    <span class="text-danger field-validation-valid d-block" data-valmsg-for="Emails[0].Address" data-valmsg-replace="true"></span>
+                </div>
+            }
+        </div>
+
+        <button type="button" id="addEmail" class="btn btn-secondary mb-3">Add email</button>
+
+        <div>
+            <button type="submit" class="btn btn-primary">@(Model.Id.HasValue ? "Save" : "Add")</button>
+            <a href="/Persons/Index" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    }
+</div>
+
+<script>
+    function updateRemoveButtons() {
+        const rows = $('#emailsContainer .email-entry');
+
+        rows.find('.removeEmail').prop('disabled', true);
+
+        if (rows.length > 1) {
+            rows.last().find('.removeEmail').prop('disabled', false);
+        }
+    }
+
+    $('#addEmail').click(function () {
+        const index = $('#emailsContainer .email-entry').length;
+
+        $('#emailsContainer').append(`
+            <div class="mb-3 email-entry">
+                <div class="input-group">
+                    <input type="text" name="Emails[${index}].Address" class="form-control" />
+                    <button type="button" class="btn btn-danger removeEmail">Remove</button>
+                </div>
+                <span class="text-danger field-validation-valid d-block" data-valmsg-for="Emails[${index}].Address" data-valmsg-replace="true"></span>
+            </div>
+        `);
+
+        updateRemoveButtons();
+    });
+
+    $('#emailsContainer').on('click', '.removeEmail', function () {
+        $(this).closest('.email-entry').remove();
+        updateRemoveButtons();
+    });
+
+    $(document).ready(updateRemoveButtons);
+</script>

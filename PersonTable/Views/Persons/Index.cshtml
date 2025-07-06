@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Main";
+    Layout = "_Layout";
+}
+
+<div id="notification"></div>
+
+<div class="container mt-4">
+    <h1>List</h1>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <form id="filterForm" class="d-flex">
+            <input type="text" id="searchInput" class="form-control me-2" placeholder="Search..." value="" />
+            <select id="pageSizeSelect" class="form-select me-2">
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+            </select>
+        </form>
+
+        <a href="/Persons/Create" class="btn btn-success">Add new person</a>
+    </div>
+
+    <div id="tableContainer"></div>
+</div>
+
+<script>
+    let currentSort = '';
+    let sortDirection = 'asc';
+
+    function loadTable(page = 1, sortOrder = '') {
+        const search = $('#searchInput').val();
+        const pageSize = $('#pageSizeSelect').val();
+
+        $.get('/Persons/LoadTable', { search, sortOrder, page, pageSize })
+            .done(function (data) {
+                if (data.success === false) {
+                    $('#tableContainer').html(`<div class="alert alert-danger">${data.message}</div>`);
+                } else {
+                    $('#tableContainer').html(data);
+                }
+            })
+            .fail(function () {
+                $('#tableContainer').html(`<div class="alert alert-danger">An unexpected error occurred.</div>`);
+            });
+    }
+
+    function showNotification(message, type = 'success') {
+        $('#notification').html(`
+            <div class="alert alert-${type} alert-dismissible fade show mt-3" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+    }
+
+    $(document).ready(() => {
+        loadTable();
+
+        $('#filterForm').submit(e => { e.preventDefault(); loadTable(); });
+        $('#pageSizeSelect').change(() => loadTable());
+
+        $('#tableContainer').on('click', '.sort-link', function (e) {
+            e.preventDefault();
+            const clickedSort = $(this).data('sort');
+
+            if (currentSort === clickedSort && sortDirection === 'asc') {
+                sortDirection = 'desc';
+            } else {
+                sortDirection = 'asc';
+            }
+
+            currentSort = clickedSort;
+            const sortOrderParam = sortDirection === 'asc' ? clickedSort : `${clickedSort}_desc`;
+            loadTable(1, sortOrderParam);
+        });
+
+        $('#tableContainer').on('click', '.page-link', function (e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            const sortOrderParam = sortDirection === 'asc' ? currentSort : `${currentSort}_desc`;
+            loadTable(page, sortOrderParam);
+        });
+
+        $('#tableContainer').on('click', '.delete-btn', function () {
+            const id = $(this).data('id');
+            if (confirm("Are you sure to delete this person?")) {
+                $.post('/Persons/Delete', { id }, function (response) {
+                    if (response.success) {
+                        showNotification(response.message, 'success');
+                        loadTable();
+                    } else {
+                        showNotification(response.message, 'danger');
+                    }
+                });
+            }
+        });
+    });
+</script>
