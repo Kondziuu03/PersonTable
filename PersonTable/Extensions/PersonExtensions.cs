@@ -12,7 +12,7 @@ namespace PersonTable.Extensions
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 Emails = model.Emails.Select(e => new Email { Address = e.Address }).ToList(),
-                Description = model.Description
+                Description = model.Description ?? string.Empty
             };
 
         public static PersonModel MapObjectToModel(this Person person)

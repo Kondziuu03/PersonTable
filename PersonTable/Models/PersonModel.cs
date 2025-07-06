@@ -19,7 +19,7 @@ namespace PersonTable.Models
 
         [MaxLength(500, ErrorMessage = "Description can be max 100 characters long")]
         [DisplayName("Description")]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public List<EmailModel> Emails { get; set; } = new();
     }

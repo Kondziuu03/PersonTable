@@ -87,7 +87,7 @@ namespace PersonTable.Controllers
 
             person.FirstName = model.FirstName;
             person.LastName = model.LastName;
-            person.Description = model.Description;
+            person.Description = model.Description ?? string.Empty;
             person.Emails = model.Emails.Where(e => !string.IsNullOrWhiteSpace(e.Address))
                                       .Select(e => new Email { Address = e.Address, PersonId = person.Id })
                                       .ToList();
